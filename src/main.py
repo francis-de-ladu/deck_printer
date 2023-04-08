@@ -1,5 +1,4 @@
 import random
-import sys
 import tempfile
 import time
 from pathlib import Path
@@ -11,6 +10,7 @@ import requests
 import scrython
 from einops import rearrange
 from fpdf import FPDF
+from pyfzf.pyfzf import FzfPrompt
 from tqdm import tqdm
 
 
@@ -25,9 +25,6 @@ def get_infos_images(infos, image_list):
 
     if card_data.type_line().startswith('Basic Land'):
         candidates = scrython.cards.Search(q=f"++{infos['name']}").data()
-        # for card_data in random.sample(candidates, infos['count']):
-        #     image = fetch_image(card_data)
-        #     image_list.append(image)
         image_list.extend(map(fetch_image, random.sample(candidates, infos['count'])))
     else:
         image = fetch_image(card_data)
@@ -92,7 +89,9 @@ def generate_pdf(path, canvas):
 
 
 if __name__ == "__main__":
-    path = Path(sys.argv[1])
+    fzf = FzfPrompt()
+    choices = [path for path in Path().rglob("*.csv") if not str.startswith(path.as_posix(), '.venv/')]
+    path = fzf.prompt(choices)[0]
     deck = load_deck(path)
 
     image_list = []

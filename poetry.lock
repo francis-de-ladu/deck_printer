@@ -680,6 +680,18 @@ files = [
 ]
 
 [[package]]
+name = "pyfzf"
+version = "0.3.1"
+description = "Python wrapper for junegunn's fuzzyfinder (fzf)"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyfzf-0.3.1-py3-none-any.whl", hash = "sha256:736f71563461b75f6f85b55345bdc638fa0dc14c32c857c59e8b1ca1cfa3cf4a"},
+    {file = "pyfzf-0.3.1.tar.gz", hash = "sha256:dd902e34cffeca9c3082f96131593dd20b4b3a9bba5b9dde1b0688e424b46bd2"},
+]
+
+[[package]]
 name = "pyinstaller"
 version = "5.9.0"
 description = "PyInstaller bundles a Python application and all its dependencies into a single package."
@@ -972,4 +984,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "db0a8ba5db24edf183c477bdc677de5049f88645e8e42219e9828e0d085fd63e"
+content-hash = "d5172f6c99547cbe0c64ca9c08af4763fae468eef3d1555488b2458907b7bf22"
