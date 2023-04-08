@@ -1,2 +1,2 @@
 #!/bin/bash
-pyinstaller -F src/main.py
+python -m PyInstaller --onefile --paths .venv\Lib\site-packages src/main.py

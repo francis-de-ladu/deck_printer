@@ -91,7 +91,8 @@ def generate_pdf(path, canvas):
 if __name__ == "__main__":
     fzf = FzfPrompt()
     choices = [path for path in Path().rglob("*.csv") if not str.startswith(path.as_posix(), '.venv/')]
-    path = fzf.prompt(choices)[0]
+    path = Path(fzf.prompt(choices)[0])
+
     deck = load_deck(path)
 
     image_list = []
