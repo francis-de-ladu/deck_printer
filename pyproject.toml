@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "deck_printer"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.12"
 tqdm = "^4.65.0"
 pandas = "^2.0.0"
 scrython = "^1.11.0"
@@ -19,6 +19,7 @@ fpdf = "^1.7.2"
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.0.2"
+pyinstaller = "^5.9.0"
 
 [build-system]
 requires = ["poetry-core"]
