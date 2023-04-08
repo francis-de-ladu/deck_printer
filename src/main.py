@@ -28,30 +28,47 @@ def load_deck(path):
     return deck.sort_values(by=['count', 'name'])
 
 
-def get_infos_images(infos, image_list):
-    card_data = scrython.cards.Named(fuzzy=infos['name'], format='json')
+def to_json(card_data):
+    if isinstance(card_data, dict):
+        return card_data
+    return card_data.scryfallJson
 
-    if card_data.type_line().startswith('Basic Land'):
+
+def process_card(infos, image_list, token_ids):
+    card_data = to_json(scrython.cards.Named(fuzzy=infos['name']))
+
+    if card_data['type_line'].startswith('Basic Land'):
         candidates = scrython.cards.Search(q=f"++{infos['name']}").data()
         image_list.extend(map(fetch_image, random.sample(candidates, infos['count'])))
     else:
         image = fetch_image(card_data)
         image_list.extend([image] * int(infos['count']))
+        token_ids |= get_tokens(card_data)
 
     time.sleep(0.05)
 
 
-def fetch_image(card_data):
-    if isinstance(card_data, dict):
-        image_url = card_data['image_uris']['normal']
-    else:
-        image_url = card_data.image_uris()['normal']
+def process_token(ident, image_list):
+    token_data = to_json(scrython.cards.Id(id=ident))
+    image_list.extend([fetch_image(token_data)] * 2)
 
+
+def fetch_image(card_data):
+    image_url = card_data['image_uris']['normal']
     img_data = requests.get(image_url, stream=True).raw
+
     image = np.asarray(bytearray(img_data.read()), dtype="uint8")
     image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-
     return image
+
+
+def get_tokens(card_data):
+    token_ids = set()
+    for part in card_data.get('all_parts', []):
+        if part['component'] == 'token':
+            token_ids.add(part['id'])
+
+    return token_ids
 
 
 def tile_in_pages(image_list):
@@ -86,7 +103,7 @@ def generate_pdf(path, canvas):
         pdf = FPDF()
 
         out_dir = Path(dirname)
-        for i, page in enumerate(canvas):
+        for i, page in enumerate(canvas, start=1):
             out_path = (out_dir / f"page_{i}.jpg").as_posix()
             cv2.imwrite(out_path, page)
 
@@ -103,9 +120,12 @@ if __name__ == "__main__":
 
     deck = load_deck(path)
 
-    image_list = []
-    for idx, infos in tqdm(deck.iterrows(), total=len(deck)):
-        get_infos_images(infos, image_list)
+    image_list, token_ids = [], set()
+    for idx, card_infos in tqdm(deck.iterrows(), total=len(deck), desc="Fetching cards"):
+        process_card(card_infos, image_list, token_ids)
+
+    for ident in tqdm(token_ids, desc="Fetching tokens"):
+        process_token(ident, image_list)
 
     canvas = tile_in_pages(image_list)
     generate_pdf(path, canvas)
