@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 
 def load_deck(path):
-    if path.suffix == 'csv':
+    if path.suffix == '.csv':
         deck = pd.read_csv(path, names=['name', 'count'])
     else:
         with path.open('r') as file:
