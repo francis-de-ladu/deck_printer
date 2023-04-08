@@ -1,4 +1,5 @@
 import random
+import re
 import tempfile
 import time
 from pathlib import Path
@@ -15,9 +16,16 @@ from tqdm import tqdm
 
 
 def load_deck(path):
-    deck = pd.read_csv(path, names=['name', 'count'])
-    deck.sort_values(by=['count', 'name'], inplace=True)
-    return deck
+    if path.suffix == 'csv':
+        deck = pd.read_csv(path, names=['name', 'count'])
+    else:
+        with path.open('r') as file:
+            lines = file.read().splitlines()
+        cards = [re.split(" ", line, maxsplit=1) for line in lines if line != ""]
+        deck = pd.DataFrame(cards, columns=['count', 'name'])
+        deck['count'] = deck['count'].astype(int)
+
+    return deck.sort_values(by=['count', 'name'])
 
 
 def get_infos_images(infos, image_list):
@@ -90,7 +98,7 @@ def generate_pdf(path, canvas):
 
 if __name__ == "__main__":
     fzf = FzfPrompt()
-    choices = [path for path in Path().rglob("*.csv") if not str.startswith(path.as_posix(), '.venv/')]
+    choices = [path for path in Path().rglob("*.[tc][xs][tv]") if not str.startswith(path.as_posix(), '.venv/')]
     path = Path(fzf.prompt(choices)[0])
 
     deck = load_deck(path)
