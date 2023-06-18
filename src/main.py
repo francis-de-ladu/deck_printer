@@ -80,7 +80,7 @@ def tile_in_pages(image_list):
     nb_missing = CARDS_PER_PAGE - (nb_images % CARDS_PER_PAGE)
 
     img_shape = np.asarray(image_list[0]).shape
-    card_height, card_width, channels = img_shape
+    card_height, card_width, _ = img_shape
 
     WHITE = 255
     canvas = np.vstack([image_list, np.full([nb_missing, *img_shape], WHITE)])
@@ -100,7 +100,7 @@ def tile_in_pages(image_list):
 
 def generate_pdf(path, canvas):
     with tempfile.TemporaryDirectory() as dirname:
-        pdf = FPDF()
+        pdf = FPDF(format='Letter')
 
         out_dir = Path(dirname)
         for i, page in enumerate(canvas, start=1):
@@ -108,7 +108,7 @@ def generate_pdf(path, canvas):
             cv2.imwrite(out_path, page)
 
             pdf.add_page()
-            pdf.image(out_path, 0, 0, 210, 297)
+            pdf.image(out_path, 0, 0, 215.9, 279.4)
 
         pdf.output(path.with_suffix(".pdf"), 'F')
 
