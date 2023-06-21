@@ -21,7 +21,8 @@ def load_deck(path):
     else:
         with path.open('r') as file:
             lines = file.read().splitlines()
-        cards = [re.split(" ", line, maxsplit=1) for line in lines if line != ""]
+        cards = [re.split(" ", line, maxsplit=1)
+                 for line in lines if line != ""]
         deck = pd.DataFrame(cards, columns=['count', 'name'])
         deck['count'] = deck['count'].astype(int)
 
@@ -39,7 +40,8 @@ def process_card(infos, image_list, token_ids):
 
     if card_data['type_line'].startswith('Basic Land'):
         candidates = scrython.cards.Search(q=f"++{infos['name']}").data()
-        image_list.extend(map(fetch_image, random.sample(candidates, infos['count'])))
+        image_list.extend(
+            map(fetch_image, random.sample(candidates, infos['count'])))
     else:
         image = fetch_image(card_data)
         image_list.extend([image] * int(infos['count']))
@@ -72,23 +74,31 @@ def get_tokens(card_data):
 
 
 def tile_in_pages(image_list):
-    COLS_PER_PAGE = 3
-    ROWS_PER_PAGE = 3
-    CARDS_PER_PAGE = COLS_PER_PAGE * ROWS_PER_PAGE
+    ROWS_PER_PAGE = COLS_PER_PAGE = 3
+    CARDS_PER_PAGE = ROWS_PER_PAGE * COLS_PER_PAGE
+    H_INCHES, W_INCHES, PAD_INCHES = 3.48, 2.49, 0.01
 
     nb_images = len(image_list)
     nb_missing = CARDS_PER_PAGE - (nb_images % CARDS_PER_PAGE)
-
     img_shape = np.asarray(image_list[0]).shape
-    card_height, card_width, _ = img_shape
 
     WHITE = 255
     canvas = np.vstack([image_list, np.full([nb_missing, *img_shape], WHITE)])
-    canvas = rearrange(canvas, '(p rows cols) h w c -> p (rows h) (cols w) c', rows=3, cols=3)
 
-    W_INCHES, H_INCHES = 2.49, 3.48
-    MISSING_WIDTH = (8.5 - W_INCHES * COLS_PER_PAGE) / W_INCHES * card_width
-    MISSING_HEIGHT = (11 - H_INCHES * ROWS_PER_PAGE) / H_INCHES * card_height
+    padding = np.zeros([len(canvas.shape), 1], dtype=int)
+    padding[1, 0] = round(PAD_INCHES / H_INCHES / 2 * canvas.shape[1])
+    padding[2, 0] = round(PAD_INCHES / W_INCHES / 2 * canvas.shape[2])
+
+    canvas = np.pad(canvas, padding, constant_values=WHITE)
+    canvas_shape = canvas.shape
+
+    canvas = rearrange(
+        canvas, '(p rows cols) h w c -> p (rows h) (cols w) c',
+        rows=ROWS_PER_PAGE, cols=COLS_PER_PAGE,
+    )
+
+    MISSING_HEIGHT = (11 - H_INCHES * ROWS_PER_PAGE) / H_INCHES * canvas_shape[1]
+    MISSING_WIDTH = (8.5 - W_INCHES * COLS_PER_PAGE) / W_INCHES * canvas_shape[2]
 
     padding = np.zeros([len(canvas.shape), 1], dtype=int)
     padding[1, 0] = round(MISSING_HEIGHT / 2)
@@ -115,7 +125,8 @@ def generate_pdf(path, canvas):
 
 if __name__ == "__main__":
     fzf = FzfPrompt()
-    choices = [path for path in Path().rglob("*.[tc][xs][tv]") if not str.startswith(path.as_posix(), '.venv/')]
+    choices = [path for path in Path().rglob("*.[tc][xs][tv]")
+               if not str.startswith(path.as_posix(), '.venv/')]
     path = Path(fzf.prompt(choices)[0])
 
     deck = load_deck(path)
