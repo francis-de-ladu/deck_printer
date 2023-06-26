@@ -76,7 +76,7 @@ def get_tokens(card_data):
 def tile_in_pages(image_list):
     ROWS_PER_PAGE = COLS_PER_PAGE = 3
     CARDS_PER_PAGE = ROWS_PER_PAGE * COLS_PER_PAGE
-    H_INCHES, W_INCHES, PAD_INCHES = 3.48, 2.49, 0.01
+    H_INCHES, W_INCHES, PAD_INCHES = 3.48, 2.49, 0.005
 
     nb_images = len(image_list)
     nb_missing = CARDS_PER_PAGE - (nb_images % CARDS_PER_PAGE)
@@ -85,9 +85,9 @@ def tile_in_pages(image_list):
     WHITE = 255
     canvas = np.vstack([image_list, np.full([nb_missing, *img_shape], WHITE)])
 
-    padding = np.zeros([len(canvas.shape), 1], dtype=int)
-    padding[1, 0] = round(PAD_INCHES / H_INCHES / 2 * canvas.shape[1])
-    padding[2, 0] = round(PAD_INCHES / W_INCHES / 2 * canvas.shape[2])
+    padding = np.zeros([len(canvas.shape), 2], dtype=int)
+    padding[1, 0] = round(PAD_INCHES / H_INCHES * canvas.shape[1])
+    padding[2, 0] = round(PAD_INCHES / W_INCHES * canvas.shape[2])
 
     canvas = np.pad(canvas, padding, constant_values=WHITE)
     canvas_shape = canvas.shape
